@@ -7,105 +7,175 @@ const ResumePreview = ({ formData }) => {
 
   const handleDownload = async () => {
     const element = previewRef.current;
-    const canvas = await html2canvas(element);
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL('image/png');
 
-    const pdf = new jsPDF();
-    const imgProps = pdf.getImageProperties(imgData);
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfHeight = (imgProps.height * (pdfWidth - 40)) / imgProps.width;
 
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save('resume.pdf');
+    pdf.addImage(imgData, 'PNG', 20, 20, pdfWidth - 40, pdfHeight, '', 'FAST');
+    pdf.save(`${formData.name || 'resume'}.pdf`);
   };
 
   const themeStyles = {
-    backgroundColor:
-      formData.theme === 'dark'
-        ? '#1a1a1a'
-        : formData.theme === 'elegant'
-        ? '#fdf6e3'
-        : '#ffffff',
-    color: formData.theme === 'dark' ? '#f1f1f1' : '#000',
-    padding: '20px',
-    borderRadius: '8px',
+    light: { backgroundColor: '#ffffff', color: '#2C3E50' },
+    dark: { backgroundColor: '#1a1a1a', color: '#f1f1f1' },
+    elegant: { backgroundColor: '#fdf6e3', color: '#3c3c3c' },
   };
 
-  const renderLayout = () => {
-    switch (formData.layout) {
-      case 'modern':
-        return (
-          <div style={{ fontFamily: 'Segoe UI', lineHeight: 1.6 }}>
-            <h1 style={{ borderBottom: '2px solid #333' }}>{formData.name}</h1>
-            <p>{formData.email} | {formData.phone}</p>
-            <p>{formData.college}</p>
-            <h2>Experience</h2>
-            <p>{formData.jobTitle} at {formData.company} ({formData.duration})</p>
-            <h2>Skills</h2>
-            <p>{formData.skills.join(', ')}</p>
-            <h2>Projects</h2>
-            <ul>{formData.projects.map((proj, i) => <li key={i}>{proj}</li>)}</ul>
-          </div>
-        );
-
-      case 'minimal':
-        return (
-          <>
-            <h2 style={{ textAlign: 'center' }}>{formData.name}</h2>
-            <p style={{ textAlign: 'center' }}>
-              {formData.email} | {formData.phone}
-            </p>
-            <p style={{ textAlign: 'center' }}>{formData.college}</p>
-            <hr />
-            <p><strong>Experience:</strong> {formData.jobTitle} at {formData.company} ({formData.duration})</p>
-            <p><strong>Skills:</strong> {formData.skills.join(', ')}</p>
-            <p><strong>Projects:</strong></p>
-            <ul>{formData.projects.map((proj, i) => <li key={i}>{proj}</li>)}</ul>
-          </>
-        );
-
-      case 'classic':
-      default:
-        return (
-          <>
-            <h2>My Resume</h2>
-            <p><strong>Name:</strong> {formData.name}</p>
-            <p><strong>Email:</strong> {formData.email}</p>
-            <p><strong>Phone:</strong> {formData.phone}</p>
-            <p><strong>College:</strong> {formData.college}</p>
-
-            <h3>Work Experience</h3>
-            <p><strong>Job Title:</strong> {formData.jobTitle}</p>
-            <p><strong>Company:</strong> {formData.company}</p>
-            <p><strong>Duration:</strong> {formData.duration}</p>
-
-            <h3>Skills</h3>
-            <ul>
-              {formData.skills.map((skill, index) => (
-                <li key={index}>{skill}</li>
-              ))}
-            </ul>
-
-            <h3>Projects</h3>
-            <ul>
-              {formData.projects.map((proj, index) => (
-                <li key={index}>{proj}</li>
-              ))}
-            </ul>
-          </>
-        );
-    }
+  const theme = themeStyles[formData.theme] || themeStyles.light;
+  const sectionStyle = { marginBottom: '28px' };
+  const headingStyle = {
+    fontSize: '20px',
+    marginBottom: '12px',
+    borderBottom: '2px solid #ccc',
+    paddingBottom: '4px',
   };
+
+  const renderLink = (label, url) =>
+    url ? (
+      <p>
+        <strong>{label}:</strong>{' '}
+        <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
+      </p>
+    ) : null;
 
   return (
-    <div style={{ padding: '10px' }}>
-      <div ref={previewRef} style={themeStyles}>
-        {renderLayout()}
+    <div className="container">
+      <div
+        ref={previewRef}
+        className="preview-container"
+        style={{
+          ...theme,
+          padding: '36px',
+          borderRadius: '10px',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+          fontFamily: 'Inter, sans-serif',
+          position: 'relative',
+        }}
+      >
+        {/* Header */}
+        <h1 style={{ fontSize: '30px', marginBottom: '4px' }}>{formData.name}</h1>
+        <p style={{ fontSize: '16px' }}>{formData.email} | {formData.phone}</p>
+
+        {/* Links */}
+        {renderLink('LinkedIn', formData.linkedin)}
+        {renderLink('GitHub', formData.github)}
+        {renderLink('Portfolio', formData.portfolio)}
+
+        {/* Education */}
+        {(formData.college || formData.degree || formData.graduationYear) && (
+          <div style={sectionStyle}>
+            <h2 style={headingStyle}>🎓 Education</h2>
+            {formData.degree && <p style={{ fontWeight: '600' }}>{formData.degree}</p>}
+            {formData.college && <p>{formData.college}</p>}
+            {formData.graduationYear && (
+              <p style={{ color: '#777' }}>🎓 Graduation Year: {formData.graduationYear}</p>
+            )}
+          </div>
+        )}
+
+        {/* Work Experience */}
+        {formData.experiences?.length > 0 && (
+          <div style={sectionStyle}>
+            <h2 style={headingStyle}>💼 Work Experience</h2>
+            {formData.experiences.map((exp, index) => (
+              <div key={index} style={{ marginBottom: '12px' }}>
+                <p><strong>{exp.jobTitle}</strong> at {exp.company}</p>
+                <p><em>{exp.duration}</em></p>
+                <p>{exp.description}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Skills */}
+        {formData.skills?.length > 0 && (
+          <div style={sectionStyle}>
+            <h2 style={headingStyle}>🧠 Skills</h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {formData.skills.map((skill, index) => (
+                <span
+                  key={index}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#18BC9C',
+                    color: '#fff',
+                    borderRadius: '20px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                  }}
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Projects */}
+        {formData.projects?.length > 0 && (
+          <div style={sectionStyle}>
+            <h2 style={headingStyle}>🚀 Projects</h2>
+            {formData.projects.map((proj, index) => (
+              <div key={index} style={{ marginBottom: '12px' }}>
+                <p><strong>{proj.title}</strong></p>
+                <p>{proj.description}</p>
+                {Array.isArray(proj.technologies) && proj.technologies.length > 0 && (
+                  <p><strong>Technologies:</strong> {proj.technologies.join(', ')}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Certifications */}
+        {formData.certifications?.length > 0 && (
+          <div style={sectionStyle}>
+            <h2 style={headingStyle}>📜 Certifications</h2>
+            <ul style={{ paddingLeft: '20px' }}>
+              {formData.certifications.map((cert, i) => (
+                <li key={i}>{cert}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Languages */}
+        {formData.languages?.length > 0 && (
+          <div style={sectionStyle}>
+            <h2 style={headingStyle}>🌐 Languages</h2>
+            <p>{formData.languages.join(', ')}</p>
+          </div>
+        )}
+
+        {/* Hobbies */}
+        {formData.hobbies?.length > 0 && (
+          <div style={sectionStyle}>
+            <h2 style={headingStyle}>🎯 Hobbies & Interests</h2>
+            <p>{formData.hobbies.join(', ')}</p>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div style={{
+          marginTop: '40px',
+          fontSize: '12px',
+          color: '#aaa',
+          textAlign: 'center',
+          borderTop: '1px solid #ccc',
+          paddingTop: '12px'
+        }}>
+          © {new Date().getFullYear()} ResumeForge · All rights reserved
+        </div>
       </div>
 
-      <button onClick={handleDownload} style={{ marginTop: '10px' }}>
-        Download PDF
-      </button>
+      {/* Download */}
+      <div style={{ textAlign: 'center', marginTop: '24px' }}>
+        <button onClick={handleDownload}>⬇️ Download PDF</button>
+      </div>
     </div>
   );
 };
