@@ -1,12 +1,17 @@
 import React from 'react';
 
-const PersonalInfo = ({ formData, setFormData }) => {
+const PersonalInfo = ({ data, setData }) => {
+  const personal = data || {}; // ✅ this is now correct
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+    const { name, value } = e.target;
+    setData({
+      ...personal,   // ✅ spreading current values
+      [name]: value,
     });
   };
+
+
 
   return (
     <div className="step-box">
@@ -19,7 +24,7 @@ const PersonalInfo = ({ formData, setFormData }) => {
         id="name"
         name="name"
         placeholder="Enter your full name"
-        value={formData.name}
+        value={personal.name || ''}
         onChange={handleChange}
       />
 
@@ -30,7 +35,7 @@ const PersonalInfo = ({ formData, setFormData }) => {
         id="email"
         name="email"
         placeholder="Enter your email"
-        value={formData.email}
+        value={personal.email || ''}
         onChange={handleChange}
       />
 
@@ -41,7 +46,7 @@ const PersonalInfo = ({ formData, setFormData }) => {
         id="phone"
         name="phone"
         placeholder="Enter your phone number"
-        value={formData.phone}
+        value={personal.phone || ''}
         onChange={handleChange}
       />
 
@@ -54,7 +59,7 @@ const PersonalInfo = ({ formData, setFormData }) => {
         id="linkedin"
         name="linkedin"
         placeholder="https://linkedin.com/in/your-profile"
-        value={formData.linkedin || ''}
+        value={personal.linkedin || ''}
         onChange={handleChange}
       />
 
@@ -65,7 +70,7 @@ const PersonalInfo = ({ formData, setFormData }) => {
         id="github"
         name="github"
         placeholder="https://github.com/your-username"
-        value={formData.github || ''}
+        value={personal.github || ''}
         onChange={handleChange}
       />
 
@@ -76,7 +81,7 @@ const PersonalInfo = ({ formData, setFormData }) => {
         id="portfolio"
         name="portfolio"
         placeholder="https://yourportfolio.com"
-        value={formData.portfolio || ''}
+        value={personal.portfolio || ''}
         onChange={handleChange}
       />
     </div>

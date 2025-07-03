@@ -1,33 +1,32 @@
 import React from 'react';
 
-const Experience = ({ formData, setFormData }) => {
-  const experiences = formData.experiences || [];
-
+const Experience = ({ data = [], setData }) => {
   const handleChange = (index, field, value) => {
-    const updated = [...experiences];
+    const updated = [...data];
     updated[index][field] = value;
-    setFormData({ ...formData, experiences: updated });
+    setData(updated);
   };
 
   const addExperience = () => {
-    setFormData({
-      ...formData,
-      experiences: [...experiences, { jobTitle: '', company: '', duration: '' }],
-    });
+    setData([...data, { jobTitle: '', company: '', duration: '' }]);
   };
 
   const removeExperience = (index) => {
-    const updated = [...experiences];
+    const updated = [...data];
     updated.splice(index, 1);
-    setFormData({ ...formData, experiences: updated });
+    setData(updated);
   };
 
   return (
     <div className="step-box">
       <h3 style={{ marginBottom: '16px' }}>Work Experience</h3>
 
-      {experiences.map((exp, index) => (
-        <div key={index} className="step-box" style={{ background: '#f9f9f9' }}>
+      {data.map((exp, index) => (
+        <div
+          key={index}
+          className="step-box"
+          style={{ background: '#f9f9f9', padding: '12px', marginBottom: '12px' }}
+        >
           <label>Job Title</label>
           <input
             type="text"
@@ -52,12 +51,15 @@ const Experience = ({ formData, setFormData }) => {
             placeholder="e.g., Jan 2022 - Dec 2022"
           />
 
-          {experiences.length > 1 && (
+          {data.length > 1 && (
             <button
               onClick={() => removeExperience(index)}
               style={{
                 backgroundColor: '#e74c3c',
+                color: '#fff',
+                padding: '4px 8px',
                 marginTop: '8px',
+                borderRadius: '4px',
               }}
             >
               Remove
@@ -67,7 +69,16 @@ const Experience = ({ formData, setFormData }) => {
       ))}
 
       <div style={{ textAlign: 'center' }}>
-        <button onClick={addExperience} style={{ marginTop: '10px' }}>
+        <button
+          onClick={addExperience}
+          style={{
+            marginTop: '10px',
+            backgroundColor: '#3498db',
+            color: '#fff',
+            padding: '6px 12px',
+            borderRadius: '4px',
+          }}
+        >
           + Add Experience
         </button>
       </div>

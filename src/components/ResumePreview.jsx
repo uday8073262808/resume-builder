@@ -16,7 +16,7 @@ const ResumePreview = ({ formData }) => {
     const pdfHeight = (imgProps.height * (pdfWidth - 40)) / imgProps.width;
 
     pdf.addImage(imgData, 'PNG', 20, 20, pdfWidth - 40, pdfHeight, '', 'FAST');
-    pdf.save(`${formData.name || 'resume'}.pdf`);
+    pdf.save(`${formData.personalInfo?.name || 'resume'}.pdf`);
   };
 
   const themeStyles = {
@@ -57,35 +57,40 @@ const ResumePreview = ({ formData }) => {
         }}
       >
         {/* Header */}
-        <h1 style={{ fontSize: '30px', marginBottom: '4px' }}>{formData.name}</h1>
-        <p style={{ fontSize: '16px' }}>{formData.email} | {formData.phone}</p>
+        <h1 style={{ fontSize: '30px', marginBottom: '4px' }}>
+          {formData.personalInfo?.name}
+        </h1>
+        <p style={{ fontSize: '16px' }}>
+          {formData.personalInfo?.email} | {formData.personalInfo?.phone}
+        </p>
 
         {/* Links */}
-        {renderLink('LinkedIn', formData.linkedin)}
-        {renderLink('GitHub', formData.github)}
-        {renderLink('Portfolio', formData.portfolio)}
+        {renderLink('LinkedIn', formData.personalInfo?.linkedin)}
+        {renderLink('GitHub', formData.personalInfo?.github)}
+        {renderLink('Portfolio', formData.personalInfo?.portfolio)}
 
         {/* Education */}
-        {(formData.college || formData.degree || formData.graduationYear) && (
+        {formData.education?.length > 0 && (
           <div style={sectionStyle}>
             <h2 style={headingStyle}>🎓 Education</h2>
-            {formData.degree && <p style={{ fontWeight: '600' }}>{formData.degree}</p>}
-            {formData.college && <p>{formData.college}</p>}
-            {formData.graduationYear && (
-              <p style={{ color: '#777' }}>🎓 Graduation Year: {formData.graduationYear}</p>
-            )}
+            {formData.education.map((edu, i) => (
+              <div key={i} style={{ marginBottom: '10px' }}>
+                <p><strong>{edu.degree}</strong></p>
+                <p>{edu.college}</p>
+                <p style={{ color: '#777' }}>{edu.year}</p>
+              </div>
+            ))}
           </div>
         )}
 
         {/* Work Experience */}
-        {formData.experiences?.length > 0 && (
+        {formData.experience?.length > 0 && (
           <div style={sectionStyle}>
             <h2 style={headingStyle}>💼 Work Experience</h2>
-            {formData.experiences.map((exp, index) => (
+            {formData.experience.map((exp, index) => (
               <div key={index} style={{ marginBottom: '12px' }}>
                 <p><strong>{exp.jobTitle}</strong> at {exp.company}</p>
                 <p><em>{exp.duration}</em></p>
-                <p>{exp.description}</p>
               </div>
             ))}
           </div>
@@ -123,8 +128,8 @@ const ResumePreview = ({ formData }) => {
               <div key={index} style={{ marginBottom: '12px' }}>
                 <p><strong>{proj.title}</strong></p>
                 <p>{proj.description}</p>
-                {Array.isArray(proj.technologies) && proj.technologies.length > 0 && (
-                  <p><strong>Technologies:</strong> {proj.technologies.join(', ')}</p>
+                {proj.technologies && (
+                  <p><strong>Technologies:</strong> {proj.technologies}</p>
                 )}
               </div>
             ))}
@@ -132,11 +137,11 @@ const ResumePreview = ({ formData }) => {
         )}
 
         {/* Certifications */}
-        {formData.certifications?.length > 0 && (
+        {formData.additional?.certifications?.length > 0 && (
           <div style={sectionStyle}>
             <h2 style={headingStyle}>📜 Certifications</h2>
             <ul style={{ paddingLeft: '20px' }}>
-              {formData.certifications.map((cert, i) => (
+              {formData.additional.certifications.map((cert, i) => (
                 <li key={i}>{cert}</li>
               ))}
             </ul>
@@ -144,18 +149,18 @@ const ResumePreview = ({ formData }) => {
         )}
 
         {/* Languages */}
-        {formData.languages?.length > 0 && (
+        {formData.additional?.languages?.length > 0 && (
           <div style={sectionStyle}>
             <h2 style={headingStyle}>🌐 Languages</h2>
-            <p>{formData.languages.join(', ')}</p>
+            <p>{formData.additional.languages.join(', ')}</p>
           </div>
         )}
 
         {/* Hobbies */}
-        {formData.hobbies?.length > 0 && (
+        {formData.additional?.hobbies?.length > 0 && (
           <div style={sectionStyle}>
             <h2 style={headingStyle}>🎯 Hobbies & Interests</h2>
-            <p>{formData.hobbies.join(', ')}</p>
+            <p>{formData.additional.hobbies.join(', ')}</p>
           </div>
         )}
 
@@ -174,7 +179,20 @@ const ResumePreview = ({ formData }) => {
 
       {/* Download */}
       <div style={{ textAlign: 'center', marginTop: '24px' }}>
-        <button onClick={handleDownload}>⬇️ Download PDF</button>
+        <button
+          onClick={handleDownload}
+          style={{
+            backgroundColor: '#2ecc71',
+            color: 'white',
+            padding: '10px 20px',
+            borderRadius: '6px',
+            border: 'none',
+            fontSize: '16px',
+            cursor: 'pointer'
+          }}
+        >
+          ⬇️ Download PDF
+        </button>
       </div>
     </div>
   );
